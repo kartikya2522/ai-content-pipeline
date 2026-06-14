@@ -69,6 +69,17 @@ Every run produces:
 
 ---
 
+## Screenshots
+
+### Workflow Canvas
+![Workflow](workflow.png)
+
+### Email Output
+![Email](email.png)
+
+### Google Sheets Log
+![Sheets](sheets.png)
+
 ## Cost
 
 ₹0. Every tool used has a free tier.
