@@ -1,0 +1,1250 @@
+{
+  "name": "AI Content Pipeline: RSS to LinkedIn via Gemini | Pixnom Technologies",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt}}",
+        "options": {}
+      },
+      "id": "8b3652a8-6b3c-477d-8636-8fbfe9b3c8c2",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2928,
+        368
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "id": "f9bdcc21-02ec-4ad6-afc8-b16b40c6c57e",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        2928,
+        560
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OelgThgencF1gTWz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                2,
+                3,
+                4,
+                0
+              ],
+              "triggerAtHour": 15
+            }
+          ]
+        }
+      },
+      "id": "7b30aa2a-c6b4-42cc-b714-8c1e6744b4e6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        256,
+        560
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {
+          "ignoreSSL": true
+        }
+      },
+      "id": "f8ee49fd-aaab-4366-8b5d-3be59c5a08ca",
+      "name": "RSS Read Testing Catalog",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        480,
+        768
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9aec0a09-4b6f-4fca-98e6-789abd5fdc51",
+              "name": "title",
+              "type": "string",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "id": "56277e54-31a0-4804-ad23-c9ee6d244641",
+              "name": "content",
+              "type": "string",
+              "value": "={{ $json.contentSnippet }}"
+            },
+            {
+              "id": "a3586a80-588e-42d1-9780-370a956ddf6b",
+              "name": "link",
+              "type": "string",
+              "value": "={{ $json.link }}"
+            },
+            {
+              "id": "58f01618-8014-4685-9192-d15d596ffcd9",
+              "name": "timestampDate",
+              "type": "number",
+              "value": "={{ new Date($json.isoDate).getTime() }}"
+            },
+            {
+              "id": "716bb078-8df3-4d96-8a1b-4aec4f8cf206",
+              "name": "categories",
+              "type": "array",
+              "value": "={{ $json.categories }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a8285394-b8b4-42a4-8be3-45dbfc7ed1e3",
+      "name": "Transform date",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        560
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "e7cf09fb-af35-495d-a840-341f8d0ddcd8",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "leftValue": "={{ $json.timestampDate}}",
+              "rightValue": "={{ Date.now() - 7 * 24 * 60 * 60 * 1000 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c5392e3-65d9-44f6-b4f2-03bfb6c5ba49",
+      "name": "Filter by date (more than 7 days)",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        1136,
+        480
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "timestampDate",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "db4bedbb-c84e-4acb-83dc-fbb97ca6c2ca",
+      "name": "Sort by date",
+      "type": "n8n-nodes-base.sort",
+      "position": [
+        1360,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "4842aae7-e5f3-4fcb-8b47-eac954182cde",
+      "name": "Limit news to x",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        1568,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "f9a0b527-30b3-4f65-8845-b1ae584d7b76",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        688,
+        560
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "url": "https://www.marktechpost.com/feed/",
+        "options": {}
+      },
+      "id": "1e26c489-cfe1-4b36-9071-4d41bbe1a82a",
+      "name": "RSS Read marktechpost",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        480,
+        560
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "content": "## RSS sources \nHere you can add up to nine sources of RSS. To do so, modify the merge node for the number of RSS feeds you want, duplicate the RSS node and wire it to the trigger and the merge node\n",
+        "height": 660,
+        "width": 500,
+        "color": 4
+      },
+      "id": "44b400c2-6404-488b-8d84-e24cf66445ee",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Age and number of the news \nHere you can set the number of days behind by changing the 7 by any number in the filter by date node:\n```\nDate.now() - 7 * 24 * 60 * 60 * 1000\n```\nYou can also modify the number of news in the \"limit news to x\" node",
+        "height": 420,
+        "width": 640,
+        "color": 5
+      },
+      "id": "cd5c4246-01f9-434a-8b38-9514e4e5b0d4",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        224
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the news article below. Identify and summarize these elements: core innovation, main goal, problem addressed, benefits, context, significance, key entities. For each element, output one line in plain text using a hyphen, the element name, a colon, and the description. Do not use any markdown formatting, bold, italics, or nested lists. Return only the list.\nTitle: {{ $json.title }}\nContent: {{ $json.content }}\nRespond ONLY in English. Do not use Spanish.",
+        "options": {}
+      },
+      "id": "bd10d075-b967-4633-9ba2-25dbf0b2869e",
+      "name": "AI Agent1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1920,
+        352
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "id": "ab1c0a4d-01e8-4100-a62a-886587526299",
+      "name": "Google Gemini Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        1920,
+        544
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OelgThgencF1gTWz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# AI Stage: Using Gemini API\n\n## Content Analysis Module",
+        "height": 560,
+        "width": 680,
+        "color": 3
+      },
+      "id": "e76371ee-84cc-41f0-8959-7d0741354ffa",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1808,
+        144
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# AI Stage: Using Gemini API\n## Hashtag Generation Module",
+        "height": 560,
+        "width": 680,
+        "color": 3
+      },
+      "id": "24a564ad-32d3-42b9-aaca-4c9d8d77fb46",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2528,
+        144
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "id": "0092b8e8-c0d3-4d9c-a790-8617e93e43db",
+      "name": "Information",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        3280,
+        -128
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a87eedc7-035a-4672-8f4b-025603473aa0",
+              "name": "Enlace",
+              "type": "string",
+              "value": "={{ $json.link }}"
+            },
+            {
+              "id": "586747c1-cdde-46b2-b504-50721e22c7e1",
+              "name": "Fecha_sinFormato",
+              "type": "string",
+              "value": "={{ $json.timestampDate}}"
+            },
+            {
+              "id": "891b44a6-7e36-4bfc-97c2-73defa2e4aef",
+              "name": "Titulo_original",
+              "type": "string",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "id": "0549ed91-6247-45d7-b165-c7ece53accc9",
+              "name": "Contenido",
+              "type": "string",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a57550da-78ec-4d54-a416-622859ed017d",
+      "name": "Information2",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1728,
+        -128
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "341ed383-56fc-4ebb-a76a-3c5ad97da091",
+              "name": "Categorias",
+              "type": "string",
+              "value": "={{ $json.categories }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7876cd0d-cc88-4912-815c-c43ea2d25448",
+      "name": "Information3",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2080,
+        944
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Accede a los datos del merge\nconst analysis = $json.output.trim();\nconst categories = JSON.parse($json.Categorias);\n\n// Construye el prompt de ingeniería avanzada\nconst prompt = `Based on the analysis: ${analysis} and these categories: ${categories.join(', ')}, select the most relevant keywords to convert into LinkedIn hashtags. Choose only those closely related to the topic, popular within the AI community, innovative, and attention-grabbing. Generate five hashtags minimum. Return only the list of hashtags formatted with “#” and separated by commas, with no additional text or line breaks. Example: #AI, #Langchain, #ModelContextProtocols.`;\n\n// Devuelve el prompt para usarlo en el siguiente nodo\nreturn { prompt };"
+      },
+      "id": "6ce78f24-fa0d-4843-b9e2-6321beb262ff",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2736,
+        368
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "025824b0-92b1-4fef-896e-ed659a31259c",
+      "name": "Information1",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        2560,
+        368
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "516a13eb-fd6d-4524-870f-937bd0c8a4ec",
+              "name": "Analisis",
+              "type": "string",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3f479d20-69eb-42f1-9de3-94fafe0cfea9",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2640,
+        0
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "content": "# AI Stage: Content Delivery via Gmail\n## Content Delivery via Branded HTML Email",
+        "height": 540,
+        "width": 560,
+        "color": 5
+      },
+      "id": "b65ea250-f029-43c8-9aa2-4da538b468c5",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5520,
+        -336
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# QR Code Generation\n\n## Generates a QR code for the published article URL",
+        "height": 540,
+        "width": 900,
+        "color": 2
+      },
+      "id": "7e668a0d-99fa-42f4-9609-cad6a02b844c",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        6208,
+        -336
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1orJ5swmPNb8Iff78HJQwiy5Y3PDvtj6lDThigPggD5Q/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1orJ5swmPNb8Iff78HJQwiy5Y3PDvtj6lDThigPggD5Q/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{$now.toISO()}}",
+            "Source": "={{$('Information').item.json.Titulo_original}}",
+            "Headline": "={{$('Information').item.json.Enlace}}",
+            "AI Generated Post": "={{$node[\"AI Agent2\"].json.output}}",
+            "Status": "Generated - Ready for Review"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Headline",
+              "displayName": "Headline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Generated Post",
+              "displayName": "AI Generated Post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "559ade49-80f1-4fab-9388-bbd32d1cdca0",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        6608,
+        272
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "btvCeqlp5ohi2Xem",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1orJ5swmPNb8Iff78HJQwiy5Y3PDvtj6lDThigPggD5Q/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1orJ5swmPNb8Iff78HJQwiy5Y3PDvtj6lDThigPggD5Q/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "63b9cc44-abac-4a07-8a7b-4e7809af1cc6",
+      "name": "Google Sheets1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        3472,
+        -128
+      ],
+      "typeVersion": 4.5,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "btvCeqlp5ohi2Xem",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "04a473df-24f7-4dd6-aa55-0960263caa71",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.Link_raw }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "937c68b8-9f9a-46bc-89ca-966c638e1f68",
+      "name": "If exists",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        3680,
+        -128
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Acceder a todas las entradas fusionadas del nodo \"Information\" (Merge)\nconst outputs = $('Information').all();  // Accede a todas las salidas fusionadas\n\n// Extraer la información de la noticia desde la primera entrada (índice 0)\nconst informacion = outputs[0].json[\"Contenido\"] || \"No disponible\";  // Información (noticia)\n\n// Extraer los hashtags desde la tercera entrada (índice 2)\nconst hashtags = outputs[0].json[\"output\"] || \"No disponibles\";  // Hashtags\n\n// Extraer los datos adicionales de la tercera entrada (índice 2)\nconst enlace = outputs[0].json[\"Enlace\"] || \"No disponible\";  // Enlace\nconst titulo_original = outputs[0].json[\"Titulo_original\"] || \"No disponible\";  // Título original\nconst analisis = outputs[0].json[\"Analisis\"] || \"No disponible\";  // Análisis\n\n// Construir el prompt final con toda la información y estructura requerida\nconst prompt = `\n\nYour Input Fields:\n- News Title: ${titulo_original}\n- News Content: ${informacion}\n- News Analysis: ${analisis}\n- Suggested Hashtags: ${hashtags}\n- Article Link: ${enlace}\n\nPost Structure:\n1. Attractive title with emoji: create a catchy title using a relevant emoji (for example, 🚀, 💡, 🔍). The title should be concise and appropriate for LinkedIn, but it should not be the same as the news title. Make it appealing to grab the readers' attention.\n\n2. Initial summary (max. 3 lines): write a clear and direct summary that introduces the core of the news. Use professional, simple language. Avoid unnecessary technical terms.\n\n3. Relevance of the Advancement (mandatory, 3 bullet points exactly): emphasize the potential impact of the advancement and how it could shape future developments. Avoid repeating information already presented in the title or summary. This section is the most persuasive part of the post, so it must be compelling and informative. Do not use hashtags or similar elements in the opening question or bullet points. \n\n- Opening question: the opening question should introduce the significance of the advancement and prompt curiosity, directly tying it to the topic and analysis of the news. This question should smoothly lead into the 3 key points. Ensureis not too long. Ensure the opening question are shorter than a line and concise. \n\n- Bullet points: provide context (AI, science, industry, etc.) and explain its significance. Capture attention by illustrating the benefits, implications, or future potential of the advancement. Ensure the bullet points are shorter than a line and concise, avoiding excessive detail. You can use emojis if necessary, but avoid overusing them.\n\n4. Call to Action (CTA – topic-related): end the post with a short, clever question or comment directly related to the topic. It must encourage reflection or interaction. Place it as the final line, after the article link\n\n5. Link to full article: add this line right before the closing *conoce más de esta noticia en el artículo completo: ${enlace}*\n\n6. Hashtags: choose 5 to 7 hashtags from the provided list. Include only those highly relevant to the topic and professional community.\n`;\n\n// Retornar solo el prompt\nreturn { \"prompt\": prompt };"
+      },
+      "id": "68c4d695-bad7-41e4-b88a-fbd5d8cb0867",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        4032,
+        -96
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {
+          "systemMessage": "=You are a professional content creator and social media manager for an Indian digital marketing agency specializing in AI automation for SMBs.\n\nBased on the news article provided, write a professional LinkedIn post (max 200 words) that:\n1. Summarizes the key insight from the article\n2. Explains why it matters for small businesses in India\n3. Is engaging, actionable and professional in tone\n4. Ends with relevant hashtags like #DigitalMarketing #AIAutomation #SMBGrowth #IndiaStartups\n\nSTRICT FORMATTING RULES:\n- Write ONLY in English\n- Do NOT use asterisks (*) or double asterisks (**)\n- Do NOT use markdown formatting of any kind\n- For bullet points use the • symbol\n- For emphasis write words in CAPITALS\n- Output must be clean plain text ready to copy-paste directly to LinkedIn\n- Do not use Spanish under any circumstances"
+        }
+      },
+      "id": "879ad0d7-6c0e-481d-b203-5637ef6cd580",
+      "name": "AI Agent2",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        4256,
+        -96
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "id": "99792b7b-919f-42d2-9ac4-75f4512e5eaf",
+      "name": "Google Gemini Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        4256,
+        80
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OelgThgencF1gTWz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# AI Stage: Using Gemini API\n\n## LinkedIn Post Generation Module",
+        "height": 540,
+        "width": 680,
+        "color": 3
+      },
+      "id": "d145c813-7366-45f4-b35c-1606c5323277",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3952,
+        -288
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a prompt that generates only one response with no comments and no line breaks: a clean professional image for a LinkedIn news post based on the following news {{ $json.text }}. Ensure it reflects the core message conveying trust innovation and professionalism with space for overlay text. Do not use quotation marks, apostrophes, or any other punctuation marks.",
+        "options": {
+          "systemMessage": "=1. Title Placement: place the provided title in Spanish at the upper center of the image. The title must be legible and appropriately sized. It should integrate smoothly into the design without overpowering other visual elements. Ensure it clearly reflects the core message of the news without disrupting the overall balance.\n\n2. Color Palette: choose a color palette that aligns with the theme of the news. Use colors that enhance the core message—such as blue or gray for technology or business, earth tones for sustainability, or neutral tones for leadership. The colors should work together harmoniously, supporting the message without causing distractions or overwhelming the design.\n\n3. Core Message Visualization: visualize the core message through minimalistic and relevant visuals. Use abstract symbols, icons, or relevant imagery that represent the key concepts of the article, ensuring the visuals enhance the message. Avoid overcrowding the design, maintaining a professional, clean appearance.\n\n4. Overlay Text Space: ensure clear space for overlay text (e.g., subtitles or keywords). The text should be legible, well-integrated into the design, and should not obscure important visual elements or the main message. The design should be balanced and allow the text to enhance the image, not overpower it.\n\n5. Composition: maintain a minimalist, balanced composition that adheres to LinkedIn’s professional standards. All elements—title, visuals, and text—should work harmoniously together. Ensure that nothing feels cluttered, and the layout directs the viewer’s attention in a clear, logical flow. The design should feel polished and professional.\n\n6. Output Format: the image must be designed to fit LinkedIn’s standard post dimensions. Ensure the resolution is high enough for clarity and sharpness across both desktop and mobile devices, maintaining high visual quality while fitting LinkedIn’s specifications.\n\n"
+        }
+      },
+      "id": "aa78a09e-53a2-45ca-8603-7ab8d2071c0c",
+      "name": "AI Agent4",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        5056,
+        -80
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "id": "5e15478c-cef0-4f33-ad76-5ac9e4970680",
+      "name": "Google Gemini Chat Model4",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        5056,
+        128
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OelgThgencF1gTWz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# AI Stage: Image Prompt Generation\n\n## Cleans article content and generates an image prompt based on the news context",
+        "height": 600,
+        "width": 640
+      },
+      "id": "68fd37f9-c871-410a-b533-9da3d5599d40",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4768,
+        -320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://medium.com/feed/latinxinai",
+        "options": {}
+      },
+      "id": "93bae040-4a3b-415d-80d6-fd3c8dac97a3",
+      "name": "RSS LatinxinAI",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        480,
+        368
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "sendTo": "kartikya.pixnom@gmail.com",
+        "subject": "=🤖 AI Content Ready — {{$('Information').item.json.Titulo_original}} | {{$now.format('dd MMM yyyy')}}",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: auto; background-color: #f4f6f9; padding: 20px; border-radius: 12px;\">\n\n  <!-- HEADER -->\n  <div style=\"background: linear-gradient(135deg, #0077B5, #00A0DC); padding: 30px 20px; border-radius: 10px 10px 0 0; text-align: center;\">\n    <h1 style=\"color: white; margin: 0; font-size: 24px; letter-spacing: 1px;\">🤖 AI Content Pipeline</h1>\n    <p style=\"color: #cce8ff; margin: 8px 0 0; font-size: 13px;\">Automated by n8n + Gemini AI — Pixnom Technologies</p>\n  </div>\n\n  <!-- BODY -->\n  <div style=\"background: white; padding: 28px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);\">\n\n    <!-- STATUS BADGE -->\n    <div style=\"display: inline-block; background-color: #e8f5e9; color: #2e7d32; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 20px;\">\n      ✅ Ready for Review & Publishing\n    </div>\n\n    <!-- SOURCE -->\n    <div style=\"margin-bottom: 20px;\">\n      <h3 style=\"color: #0077B5; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;\">📰 Source Article</h3>\n      <p style=\"margin: 0; color: #444; font-size: 14px; line-height: 1.5;\">{{$('Information').item.json.Titulo_original}}</p>\n    </div>\n\n    <hr style=\"border: none; border-top: 1px solid #eee; margin: 20px 0;\">\n\n    <!-- LINKEDIN POST -->\n    <div style=\"margin-bottom: 20px;\">\n      <h3 style=\"color: #0077B5; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px;\">✍️ AI Generated LinkedIn Post</h3>\n      <div style=\"background: #f0f7ff; border-left: 4px solid #0077B5; padding: 18px; border-radius: 6px; color: #333; font-size: 14px; line-height: 1.8;\">\n        {{$node[\"AI Agent2\"].json.output}}\n      </div>\n    </div>\n\n    <hr style=\"border: none; border-top: 1px solid #eee; margin: 20px 0;\">\n\n    <!-- HASHTAGS -->\n    <div style=\"margin-bottom: 20px;\">\n      <h3 style=\"color: #0077B5; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;\">🏷️ Hashtags</h3>\n      <p style=\"margin: 0; color: #0077B5; font-size: 13px; line-height: 1.8;\">{{$node[\"AI Agent\"].json.output}}</p>\n    </div>\n\n    <hr style=\"border: none; border-top: 1px solid #eee; margin: 20px 0;\">\n\n    <!-- LOG STATUS -->\n    <div style=\"background: #f9f9f9; border-radius: 8px; padding: 14px 18px; font-size: 13px; color: #666;\">\n      📊 <strong>Logged to Google Sheets</strong> — Pixnom Content Log<br>\n      🕐 <strong>Generated at:</strong> {{$now.toISO()}}\n    </div>\n\n  </div>\n\n  <!-- FOOTER -->\n  <div style=\"text-align: center; padding: 16px; margin-top: 10px;\">\n    <p style=\"color: #999; font-size: 11px; margin: 0;\">This email was generated automatically by an n8n workflow.<br>Built for Pixnom Technologies — AI Automation Agency</p>\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        5760,
+        -80
+      ],
+      "id": "e5844ca9-417f-4aed-a670-6e1ca4881618",
+      "name": "Send a message",
+      "webhookId": "389c5c1a-fc24-4dd7-801e-fdcfc043e0b0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Dn4f59zn1xhFWFUV",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let texto = $input.first().json.output\n  .replace(/[\\n\\r\\t]/g, \" \")  // Reemplaza saltos de línea, retorno de carro y tabulaciones por espacio\n  .replace(/['\"\\\\]/g, \"\")      // Elimina comillas simples, dobles y barras invertidas\n  .replace(/\\s+/g, \" \")        // Reemplaza múltiples espacios por un solo espacio\n  .trim();                     // Elimina los espacios en blanco al inicio y al final\n\nreturn {\n  text: texto\n};"
+      },
+      "id": "83afd162-9160-4a0e-8ac4-deee4e65690c",
+      "name": "Clean Article Content",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        4832,
+        -80
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"link\": \"https://www.linkedin.com/feed/update/{{ $json.urn }}\"\n} ",
+        "options": {}
+      },
+      "id": "afa9677c-283e-45c7-817c-98ef5147bab9",
+      "name": "Convert to Article Link",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        6288,
+        -80
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "url": "https://api.qrserver.com/v1/create-qr-code/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "={{ $json.link }}"
+            },
+            {
+              "name": "size",
+              "value": "300x300"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "25a8647e-093e-4f95-bdcc-002b36d52704",
+      "name": "Generate QR Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        6592,
+        -80
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "fileName": "qr.png",
+        "options": {}
+      },
+      "id": "1f482175-4527-44d7-899b-c59ffcf0dd33",
+      "name": "Save QR File",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "position": [
+        6864,
+        -80
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Transform date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Information",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Information1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Clean Article Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If exists": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Information",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Information": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information2": {
+      "main": [
+        [
+          {
+            "node": "Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information3": {
+      "main": [
+        [
+          {
+            "node": "Information1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sort by date": {
+      "main": [
+        [
+          {
+            "node": "Limit news to x",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        []
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "If exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS LatinxinAI": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform date": {
+      "main": [
+        [
+          {
+            "node": "Filter by date (more than 7 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit news to x": {
+      "main": [
+        [
+          {
+            "node": "Information2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Information3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read Testing Catalog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read marktechpost",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS LatinxinAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read marktechpost": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read Testing Catalog": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter by date (more than 7 days)": {
+      "main": [
+        [
+          {
+            "node": "Sort by date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Convert to Article Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Article Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Article Link": {
+      "main": [
+        [
+          {
+            "node": "Generate QR Code",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate QR Code": {
+      "main": [
+        [
+          {
+            "node": "Save QR File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "915d89d9-e26a-44ee-b178-7b3240e973b3",
+  "meta": {
+    "templateId": "4414",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "81c78aac53c069afb66c976ae11f9e2c08725f1b176a313aaaae454480703df3"
+  },
+  "nodeGroups": [],
+  "id": "DQ0ZdDBM6VnV0aAA",
+  "tags": []
+}
